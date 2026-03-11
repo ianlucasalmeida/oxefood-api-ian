@@ -46,4 +46,13 @@ public class EntregadorService {
         repository.save(entregador);
     }
 
+    @Transactional
+    public void delete(Long id) {
+
+        Entregador entregador = repository.findById(id).get();
+        entregador.setHabilitado(Boolean.FALSE);
+
+        repository.save(entregador);
+    }
+
 }
