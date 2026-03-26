@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import br.com.ifpe.oxefood.util.exception.ProdutoException;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -18,6 +19,15 @@ public class ProdutoService {
 
         // Como a nossa entidade Produto herda de EntidadeAuditavel/EntidadeNegocio,
         // precisamos garantir que ela seja salva como "habilitada" por padrão.
+        if (produto.getValor() < 10) {
+            throw new ProdutoException(ProdutoException.MSG_VALOR_MINIMO_PRODUTO);
+        }
+
+        //Consultar se a descrição já existe no banco de dados, caso exista, lançar uma exceção
+        if (repository.existsByTitulo(produto.getTitulo())) {
+            throw new ProdutoException(ProdutoException.MSG_PRODUTO_JA_CADASTRADO);
+        }
+
         produto.setHabilitado(Boolean.TRUE);
 
         return repository.save(produto);
@@ -35,9 +45,9 @@ public class ProdutoService {
 
     @Transactional
     public void update(Long id, Produto produtoAlterado) {
-        
+
         Produto produto = repository.findById(id).get();
-        
+
         produto.setTitulo(produtoAlterado.getTitulo());
         produto.setDescricao(produtoAlterado.getDescricao());
         produto.setValor(produtoAlterado.getValor());
