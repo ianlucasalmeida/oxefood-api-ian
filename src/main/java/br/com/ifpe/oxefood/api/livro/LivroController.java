@@ -1,4 +1,4 @@
-package br.com.ifpe.oxefood.api.entregador;
+package br.com.ifpe.oxefood.api.livro;
 
 import java.util.List;
 
@@ -15,45 +15,44 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.ifpe.oxefood.modelo.entregador.Entregador;
-import br.com.ifpe.oxefood.modelo.entregador.EntregadorService;
+import br.com.ifpe.oxefood.modelo.livro.Livro;
+import br.com.ifpe.oxefood.modelo.livro.LivroService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/entregador")
+@RequestMapping("/api/livro")
 @CrossOrigin
-public class EntregadorController {
+public class LivroController {
 
     @Autowired
-    private EntregadorService entregadorService;
+    private LivroService livroService;
 
     @PostMapping
-    public ResponseEntity<Entregador> save(@RequestBody @Valid EntregadorRequest request) {
-
-        // O request.build() converte o DTO (EntregadorRequest) na Entidade (Entregador)
-        Entregador entregador = entregadorService.save(request.build());
-        
-        return new ResponseEntity<Entregador>(entregador, HttpStatus.CREATED);
+    // A anotação @Valid ativa a validação que fizemos no Request 
+    public ResponseEntity<Livro> save(@RequestBody @Valid LivroRequest request) { 
+        Livro livro = livroService.save(request.build()); 
+        return new ResponseEntity<Livro>(livro, HttpStatus.CREATED);
     }
+
     @GetMapping
-    public List<Entregador> listarTodos() {
-        return entregadorService.listarTodos();
+    public List<Livro> listarTodos() {
+        return livroService.listarTodos();
     }
-    @GetMapping("/{id}")
-    public Entregador obterPorID(@PathVariable Long id) {
-        return entregadorService.obterPorID(id);
-    }
-    @PutMapping("/{id}")
-    public ResponseEntity<Entregador> update(@PathVariable("id") Long id, @RequestBody @Valid EntregadorRequest request) {
 
-        entregadorService.update(id, request.build());
+    @GetMapping("/{id}")
+    public Livro obterPorID(@PathVariable Long id) {
+        return livroService.obterPorID(id);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Livro> update(@PathVariable("id") Long id, @RequestBody @Valid LivroRequest request) {
+        livroService.update(id, request.build());
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-
-        entregadorService.delete(id);
+        livroService.delete(id);
         return ResponseEntity.ok().build();
     }
 }
