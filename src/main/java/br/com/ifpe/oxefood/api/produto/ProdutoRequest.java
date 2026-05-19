@@ -22,6 +22,10 @@ public class ProdutoRequest {
 
     private Integer tempoEntregaMaximo;
 
+    // === NOVO ATRIBUTO ADICIONADO (AULA C18) ===
+    // Recebe o ID da categoria selecionada no Dropdown do React
+    private Long idCategoria;
+
     // Método responsável por converter o Request (DTO) em uma Entidade Produto
     public Produto build() {
 
