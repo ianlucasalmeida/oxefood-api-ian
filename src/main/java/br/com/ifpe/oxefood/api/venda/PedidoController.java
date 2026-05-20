@@ -1,4 +1,4 @@
-package br.com.ifpe.oxefood.api.produto;
+package br.com.ifpe.oxefood.api.venda;
 
 import java.util.List;
 
@@ -15,42 +15,44 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.ifpe.oxefood.modelo.produto.Produto;
-import br.com.ifpe.oxefood.modelo.produto.ProdutoService;
+import br.com.ifpe.oxefood.modelo.venda.Pedido;
+import br.com.ifpe.oxefood.modelo.venda.PedidoService;
 
 @RestController
-@RequestMapping("/api/produto")
+@RequestMapping("/api/pedido")
 @CrossOrigin
-public class ProdutoController {
+public class PedidoController {
 
     @Autowired
-    private ProdutoService produtoService;
+    private PedidoService pedidoService;
 
     @PostMapping
-    public ResponseEntity<Produto> salvar(@RequestBody ProdutoRequest request) {
-        Produto produto = produtoService.salvar(request.build(), request.getIdCategoria());
-        return new ResponseEntity<>(produto, HttpStatus.CREATED);
+    public ResponseEntity<Pedido> salvar(@RequestBody PedidoRequest request) {
+        // Envia o objeto e os IDs separados para o Service
+        Pedido pedido = pedidoService.salvar(request.build(), request.getIdCliente(), request.getIdEntregador());
+        return new ResponseEntity<>(pedido, HttpStatus.CREATED);
     }
 
     @GetMapping
-    public List<Produto> listarTodos() {
-        return produtoService.listarTodos();
+    public List<Pedido> listarTodos() {
+        return pedidoService.listarTodos();
     }
 
     @GetMapping("/{id}")
-    public Produto obterPorID(@PathVariable Long id) {
-        return produtoService.obterPorID(id);
+    public Pedido obterPorID(@PathVariable Long id) {
+        return pedidoService.obterPorID(id);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Produto> atualizar(@PathVariable Long id, @RequestBody ProdutoRequest request) {
-        produtoService.atualizar(id, request.build(), request.getIdCategoria());
+    // Método focado apenas em mudar o status logístico do pedido
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Void> atualizarStatus(@PathVariable Long id, @RequestBody String novoStatus) {
+        pedidoService.mudarStatus(id, novoStatus);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        produtoService.deletar(id);
+        pedidoService.deletar(id);
         return ResponseEntity.ok().build();
     }
 }
