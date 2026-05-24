@@ -12,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import br.com.ifpe.oxefood.modelo.acesso.JwtService;
 import br.com.ifpe.oxefood.modelo.acesso.UsuarioService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,43 +32,43 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
-
-        // Se não tiver o cabeçalho de autorização ou não começar com "Bearer ", passa direto para ser bloqueado pelas regras
+        
+        // Verifica se o cabeçalho existe e começa com o padrão esperado
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Extrai o token ignorando os 7 primeiros caracteres ("Bearer ")
-        jwt = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(jwt);
+        try {
+            final String jwt = authHeader.substring(7);
+            final String userEmail = jwtService.extractUsername(jwt);
 
-        // Se encontrou o email no token e o utilizador ainda não está autenticado no contexto atual
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                
+                UserDetails userDetails = this.usuarioService.loadUserByUsername(userEmail);
 
-            // Vai à base de dados buscar o utilizador
-            UserDetails userDetails = this.usuarioService.loadUserByUsername(userEmail);
-
-            // Se o token for válido para esse utilizador
-            if (jwtService.isTokenValid(jwt, userDetails.getUsername())) {
-
-                // Cria o passe de entrada oficial do Spring Security
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // Salva o utilizador logado no contexto da requisição
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                if (jwtService.isTokenValid(jwt, userDetails.getUsername())) {
+                    
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, 
+                            null, 
+                            userDetails.getAuthorities()
+                    );
+                    
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (ExpiredJwtException e) {
+            // Token expirado capturado: garante que não há usuário logado e não lança exceção 500
+            SecurityContextHolder.clearContext();
+            logger.warn("Token JWT expirado: " + e.getMessage());
+        } catch (Exception e) {
+            // Captura qualquer outra falha na extração/validação para evitar erro 500
+            SecurityContextHolder.clearContext();
+            logger.error("Erro ao processar token JWT: " + e.getMessage());
         }
         
-        // Deixa a requisição seguir o seu caminho
         filterChain.doFilter(request, response);
     }
 }

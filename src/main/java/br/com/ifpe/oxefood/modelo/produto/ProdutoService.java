@@ -50,11 +50,15 @@ public class ProdutoService {
                 produto.setCategoria(categoria);
             }
             
+            produto.setCodigo(produtoAlterado.getCodigo());
             produto.setTitulo(produtoAlterado.getTitulo());
             produto.setDescricao(produtoAlterado.getDescricao());
             produto.setValor(produtoAlterado.getValor());
             produto.setTempoEntregaMinimo(produtoAlterado.getTempoEntregaMinimo());
             produto.setTempoEntregaMaximo(produtoAlterado.getTempoEntregaMaximo());
+            
+            // ATUALIZA O NOME DA IMAGEM NO BANCO
+            produto.setImagem(produtoAlterado.getImagem());
 
             produto.setVersao(produto.getVersao() + 1);
             produto.setDataUltimaModificacao(LocalDate.now());
@@ -71,5 +75,30 @@ public class ProdutoService {
             produto.setDataUltimaModificacao(LocalDate.now());
             repository.save(produto);
         }
+    }
+
+    public List<Produto> filtrar(String codigo, String titulo, Long idCategoria) {
+
+        List<Produto> listaProdutos = repository.findAll();
+
+        if ((codigo != null && !"".equals(codigo)) &&
+            (titulo == null || "".equals(titulo)) &&
+            (idCategoria == null)) {
+            listaProdutos = repository.consultarPorCodigo(codigo);
+        } else if ((codigo == null || "".equals(codigo)) &&
+                   (titulo != null && !"".equals(titulo)) &&
+                   (idCategoria == null)) {
+            listaProdutos = repository.findByTituloContainingIgnoreCaseOrderByTituloAsc(titulo);
+        } else if ((codigo == null || "".equals(codigo)) &&
+                   (titulo == null || "".equals(titulo)) &&
+                   (idCategoria != null)) {
+            listaProdutos = repository.consultarPorCategoria(idCategoria);
+        } else if ((codigo == null || "".equals(codigo)) &&
+                   (titulo != null && !"".equals(titulo)) &&
+                   (idCategoria != null)) {
+            listaProdutos = repository.consultarPorTituloECategoria(titulo, idCategoria);
+        }
+
+        return listaProdutos;
     }
 }

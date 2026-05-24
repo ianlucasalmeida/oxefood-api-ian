@@ -15,47 +15,58 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.ifpe.oxefood.modelo.acesso.UsuarioService;
+import jakarta.servlet.http.HttpServletRequest;
 import br.com.ifpe.oxefood.modelo.cliente.Cliente;
 import br.com.ifpe.oxefood.modelo.cliente.ClienteService;
 import jakarta.validation.Valid;
 
+// Anotações de Swagger para documentação (Aula C30)
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/cliente")
 @CrossOrigin
+@Tag(name = "API Cliente", description = "Endpoints para gestão de clientes no sistema") //
 public class ClienteController {
 
     @Autowired
     private ClienteService clienteService;
 
-    @PostMapping
-    public ResponseEntity<Cliente> save(@RequestBody @Valid ClienteRequest request) {
+    @Autowired
+    private UsuarioService usuarioService;
 
-        Cliente cliente = clienteService.save(request.build());
+    @Operation(summary = "Salva um novo cliente", description = "Endpoint para inserir um cliente e disparar e-mail de boas-vindas") //
+    @PostMapping
+    public ResponseEntity<Cliente> save(@RequestBody @Valid ClienteRequest request, HttpServletRequest requestHttp) {
+        Cliente cliente = clienteService.save(request.build(), usuarioService.obterUsuarioLogado(requestHttp));
         return new ResponseEntity<Cliente>(cliente, HttpStatus.CREATED);
     }
 
+    @Operation(summary = "Lista todos os clientes")
     @GetMapping
     public List<Cliente> listarTodos() {
         return clienteService.listarTodos();
     }
 
+    @Operation(summary = "Busca cliente por ID")
     @GetMapping("/{id}")
     public Cliente obterPorID(@PathVariable Long id) {
         return clienteService.obterPorID(id);
     }
 
+    @Operation(summary = "Atualiza dados do cliente", description = "Endpoint para editar um cliente existente e realizar auditoria") //
     @PutMapping("/{id}")
-    public ResponseEntity<Cliente> update(@PathVariable("id") Long id, @RequestBody ClienteRequest request) {
-
-        clienteService.update(id, request.build());
+    public ResponseEntity<Cliente> update(@PathVariable("id") Long id, @RequestBody ClienteRequest request, HttpServletRequest requestHttp) {
+        clienteService.update(id, request.build(), usuarioService.obterUsuarioLogado(requestHttp));
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Remove um cliente (Soft Delete)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-
         clienteService.delete(id);
         return ResponseEntity.ok().build();
     }
-
 }

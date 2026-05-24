@@ -1,4 +1,4 @@
-package br.com.ifpe.oxefood.modelo.produto;
+package br.com.ifpe.oxefood.modelo.cliente;
 
 import org.hibernate.annotations.SQLRestriction;
 
@@ -15,39 +15,37 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "Produto")
+@Table(name = "EnderecoCliente")
 @SQLRestriction("habilitado = true")
 @Builder
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Produto extends EntidadeAuditavel {
+public class EnderecoCliente extends EntidadeAuditavel {
 
     @ManyToOne
     @JoinColumn(nullable = false)
-    private CategoriaProduto categoria;
+    private Cliente cliente;
+
+    @Column(nullable = false)
+    private String rua;
 
     @Column
-    private String codigo;
+    private String numero;
 
     @Column
-    private String titulo;
+    private String bairro;
 
     @Column
-    private String descricao;
+    private String cep;
 
     @Column
-    private Double valor;
+    private String cidade;
 
     @Column
-    private Integer tempoEntregaMinimo;
+    private String estado;
 
     @Column
-    private Integer tempoEntregaMaximo;
-
-    // CAMPO ADICIONADO PARA GUARDAR O NOME DA IMAGEM
-    @Column
-    private String imagem;
-
+    private String complemento;
 }
